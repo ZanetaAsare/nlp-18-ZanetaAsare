@@ -11,6 +11,7 @@ Original file is located at
 # uploaded = files.upload()
 
 from math import*
+from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import train_test_split
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.feature_extraction.text import TfidfTransformer
@@ -156,3 +157,32 @@ def qna_generator(test_file):
       results.close()
       
     
+questions = listed('Questions.txt')
+questions = questions[:-5]
+topics = listed('Topics.txt')
+
+def topic_log(test_file):
+      logisticRegr = LogisticRegression()
+
+      tfidf = TfidfVectorizer(sublinear_tf=True, min_df=5, norm='l2', encoding='latin-1', ngram_range=(1, 2), stop_words='english')
+      features = tfidf.fit_transform(questions).toarray()
+
+      X_train, X_test, y_train, y_test = train_test_split(questions, topics, random_state = 0)
+      count_vect = CountVectorizer()
+      X_train_counts = count_vect.fit_transform(X_train)
+      tfidf_transformer = TfidfTransformer()
+      X_train_tfidf = tfidf_transformer.fit_transform(X_train_counts)
+      model = logisticRegr.fit(X_train_tfidf, y_train)
+      
+      test = listed(test_file)
+      results = open("topic_results.txt","w+")
+      for line in test:
+            quest = count_vect.transform([line])
+            ans = model.predict(quest)[0]
+            #     print(ans)
+            #     print('\n')
+            results.write(ans)
+            results.write('\n')
+      results.close()
+
+topic_log('Questions.txt')
